@@ -1,6 +1,6 @@
 import { useSetRecoilState } from "recoil";
 import { axiosPost } from "../../libs/axios";
-import { isLoginState } from "../../libs/recoil";
+import { isLoginState } from "../../libs/atoms";
 
 function Login() {
   const setIsLogin = useSetRecoilState(isLoginState);

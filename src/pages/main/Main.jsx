@@ -1,11 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useRecoilValue } from "recoil";
-import { userInfoState } from "../../libs/recoil";
+import { userInfoState } from "../../libs/atoms";
 
-const Main = () => {
+const Main = (props) => {
+  const params = useParams();
   const userInfo = useRecoilValue(userInfoState);
   return (
     <div>
+      <div>
+        <h1>{params.test || "Main"}</h1>
+      </div>
       <div>
         <Link to='/Test1'>Test1</Link>
       </div>
