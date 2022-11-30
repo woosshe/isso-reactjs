@@ -2,10 +2,11 @@ import { useSetRecoilState } from "recoil";
 import { axiosPost } from "../../libs/axios";
 import { isLoginState } from "../../libs/atoms";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BtnBlue, Input, Label, Toggle } from "../../components/form";
+import { BtnBlue, Input, Label, Toggle } from "../../components/Form";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
-function Login() {
+export const Signin = () => {
   const setIsLogin = useSetRecoilState(isLoginState);
 
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ function Login() {
 
   const fnSignin = (data) => {
     axiosPost({
-      url: "/auth/signin",
+      url: "/api/auth/signin",
       data,
     }).then((response) => {
       setIsLogin(response.code === "000");
@@ -66,6 +67,22 @@ function Login() {
       </div>
     </form>
   );
-}
+};
 
-export default Login;
+export const Signout = () => {
+  const setIsLogin = useSetRecoilState(isLoginState);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    axiosPost({
+      url: "/api/auth/signout",
+    }).then((response) => {
+      setIsLogin(false);
+      navigate("/signin");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+};
