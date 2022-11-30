@@ -22,6 +22,9 @@ function Login() {
     }).then((response) => {
       setIsLogin(response.code === "000");
       if (response.code === "000") {
+        Object.keys(response.data).map((key) => {
+          window.localStorage.setItem(key, response.data[key]);
+        });
         if (data.rememberMe) {
           window.localStorage.setItem("rememberMe", data.email);
         } else {
