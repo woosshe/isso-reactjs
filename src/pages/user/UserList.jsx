@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Grid } from "../../components/Grid";
+import { getGridData, Grid } from "../../components/Grid";
 import { axiosPost } from "../../libs/axios";
 
 function UserList() {
@@ -58,7 +58,12 @@ function UserList() {
     rowHeight: "36px",
   };
 
-  return <Grid columns={columns} data={userList} config={config} />;
+  return (
+    <>
+      <Grid id='userListGrid' columns={columns} data={userList} config={config} />
+      <button onClick={() => getGridData("userListGrid")}>getGridData</button>
+    </>
+  );
 }
 
 export default UserList;

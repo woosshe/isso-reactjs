@@ -79,7 +79,7 @@ const Cell = styled.div`
     box-shadow: 0 0 0 1px inset rgba(0, 0, 0, 0.5);
   }
 
-  & span {
+  & > * {
     display: block;
     width: 100%;
     height: 100%;
@@ -93,13 +93,16 @@ const Cell = styled.div`
     padding: 0 10px;
     color: inherit;
     opacity: 1;
-    background-color: #fdf7ea;
+    background-color: #fefbf5;
     &:focus {
       position: relative;
       z-index: 1;
     }
     &:disabled {
       background-color: transparent;
+      &.editable {
+        background-color: #fefbf5;
+      }
     }
   }
 
@@ -115,20 +118,23 @@ const Cell = styled.div`
     background-repeat: no-repeat;
     background-size: 8px;
     background-position: calc(100% - 10px) 50%;
-    background-color: #fdf7ea;
+    background-color: #fefbf5;
     &:focus {
       position: relative;
       z-index: 1;
     }
     &:disabled {
-      /* background-image: url(${imgDownArrowDisabled}); */
       background-image: none;
       background-color: transparent;
+      &.editable {
+        background-image: url(${imgDownArrowDisabled});
+        background-color: #fefbf5;
+      }
     }
   }
 `;
 
-export const Grid = ({ columns, data, config }) => {
+export const Grid = ({ id, columns, data, config }) => {
   const [row, setRow] = useState(-1);
   const [col, setCol] = useState(-1);
 
@@ -150,7 +156,7 @@ export const Grid = ({ columns, data, config }) => {
     }
   }, [row, col]);
 
-  if (!columns) {
+  if (!id || !columns) {
     return null;
   }
 
@@ -162,9 +168,9 @@ export const Grid = ({ columns, data, config }) => {
     }
   };
 
-  const columnClass = (columnIndex) => {
+  const columnClass = (colIndex) => {
     try {
-      return columnIndex === 0 ? "fc" : columnIndex + 1 === columns.length ? "lc" : "";
+      return colIndex === 0 ? "fc" : colIndex + 1 === columns.length ? "lc" : "";
     } catch (e) {
       return "";
     }
@@ -184,10 +190,26 @@ export const Grid = ({ columns, data, config }) => {
     if (column.dataset.editable && column.dataset.editable === "true") {
       target.removeAttribute("disabled");
       target.focus();
+      if (target.nodeName === "INPUT") target.select();
       target.onblur = () => {
-        console.log(target);
         target.setAttribute("disabled", true);
       };
+    }
+  };
+
+  const onCellChange = (rowIndex, colIndex, target) => {
+    setCellValue(rowIndex, colIndex, target.value);
+  };
+
+  const setCellValue = (rowIndex, colIndex, value) => {
+    try {
+      const cell = document.querySelector(
+        `[data-type='column'][data-row='${rowIndex}'][data-col='${colIndex}'][data-editable='true']`
+      );
+      cell.dataset.val = value;
+      cell.querySelector("select,input,data").value = value;
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -198,7 +220,7 @@ export const Grid = ({ columns, data, config }) => {
   }
 
   return (
-    <Wrap style={{ ...wrapStyle }}>
+    <Wrap id={id} style={{ ...wrapStyle }}>
       <Box style={{ gridTemplateColumns: `repeat(${columns.length}, auto)` }}>
         {columns.map((column, i) => (
           <Cell key={i} data-type='header' className={`${columnClass(i)} `}>
@@ -208,23 +230,29 @@ export const Grid = ({ columns, data, config }) => {
         {(!data || data.length === 0) && <Cell data-type='nodata'></Cell>}
         {data &&
           data.map((row, rowIndex) =>
-            columns.map((column, columnIndex) => {
+            columns.map((column, colIndex) => {
               const { id, name, editable, type, data } = column;
               const value = row[id];
               return (
                 <Cell
-                  key={`${rowIndex}_${columnIndex}`}
-                  data-type='column'
-                  className={`${rowClass(rowIndex)} ${columnClass(columnIndex)}`}
+                  key={`${rowIndex}_${colIndex}`}
+                  className={`${rowClass(rowIndex)} ${columnClass(colIndex)}`}
                   onClick={onCellClick}
                   onDoubleClick={onCellDblClick}
+                  data-type='column'
                   data-row={rowIndex}
-                  data-col={columnIndex}
-                  data-val={value}
+                  data-col={colIndex}
                   data-editable={editable}
+                  data-val={value}
+                  data-org={value}
                 >
                   {type === "combo" && data && data.length > 0 ? (
-                    <select defaultValue={value} disabled={!editable}>
+                    <select
+                      defaultValue={value}
+                      disabled={true}
+                      className={editable ? "editable" : null}
+                      onChange={({ target }) => onCellChange(rowIndex, colIndex, target)}
+                    >
                       <option value=''></option>
                       {data.map(({ value: v, label: l }) => (
                         <option key={v} value={v}>
@@ -233,9 +261,15 @@ export const Grid = ({ columns, data, config }) => {
                       ))}
                     </select>
                   ) : editable ? (
-                    <input type='text' defaultValue={value} disabled={!editable} />
+                    <input
+                      type='text'
+                      defaultValue={value}
+                      disabled={true}
+                      className={editable ? "editable" : null}
+                      onChange={({ target }) => onCellChange(rowIndex, colIndex, target)}
+                    />
                   ) : (
-                    <span>{value}</span>
+                    <data value={value}>{value}</data>
                   )}
                 </Cell>
               );
@@ -245,4 +279,15 @@ export const Grid = ({ columns, data, config }) => {
       </Box>
     </Wrap>
   );
+};
+
+export const getGridData = (id) => {
+  const grid = document.querySelector(`#${id}`);
+  if (grid) {
+    let rows = [];
+    grid.querySelectorAll("[data-type='column']").forEach((cell) => {
+      let cols = {};
+      console.log(cell);
+    });
+  }
 };
